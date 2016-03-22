@@ -10,37 +10,75 @@ namespace PlayGround
     {
         public static int[] Generate(int maxValue)
         {
+            return new PrimeGenerator(maxValue).generate();
+        }
+
+        private readonly int maxValue;
+        private readonly bool[] crossedOut;
+
+        public PrimeGenerator(int maxValue)
+        {
+            this.maxValue = maxValue;
+            this.crossedOut = new bool[maxValue + 1];
+        }
+
+        private int[] generate()
+        {
             if (maxValue < 2)
                 return new int[0];
 
-            var f = new bool[maxValue + 1];
-            f[0] = f[1] = true;
-            //0 - значит простое
+            crossOutNotPrime();
+            int[] primes = getNotCrossedValues();
+            return primes;
+        }
 
-            for (int i = 2; i * i < f.Length; ++i)
+        private void crossOutNotPrime()
+        {
+            crossedOut[0] = crossedOut[1] = true;
+
+            //Достаточно перебирать только корня maxValue
+            for (int i = 2; i * i <= maxValue; ++i)
             {
-                if (!f[i])
+                if (!crossedOut[i])
+                    crossOutMultiplesOf(i);
+            }
+        }
+
+        private void crossOutMultiplesOf(int primeValue)
+        {
+            var step = primeValue;
+            var prime = primeValue;
+            for (int notPrime = prime + step; notPrime <= maxValue; notPrime += step)
+                crossedOut[notPrime] = true;
+        }
+
+        private int[] getNotCrossedValues()
+        {
+            int countPrimes = getNumberOfUncrossedIntegers();
+
+            var primes = new int[countPrimes];
+            var freePosition = 0;
+            for (int i = 0; i < crossedOut.Length; ++i)
+            {
+                if (!crossedOut[i])
                 {
-                    for (int t = 2 * i; t < f.Length; t += i)
-                        f[i] = true;
+                    primes[freePosition] = i;
+                    freePosition++;
                 }
             }
 
-            int count = 0;
-            for (int i = 0; i < f.Length; ++i)
-                if (!f[i])
-                    count++;
-
-            var res = new int[count];
-            var resCounter = 0;
-            for (int i = 0; i < f.Length; ++i)
-                if(!f[i])
-                {
-                    res[resCounter] = i;
-                    resCounter ++;
-                }
-
-            return res;
+            return primes;
         }
+
+        private int getNumberOfUncrossedIntegers()
+        {
+            int countPrimes = 0;
+            for (int i = 0; i < crossedOut.Length; ++i)
+                if (!crossedOut[i])
+                    countPrimes++;
+
+            return countPrimes;
+        }
+
     }
 }
